@@ -1,0 +1,22 @@
+models:
+  - "chelsa-w5e5"
+variables:
+  - "tas"
+  - "pr"
+  - "rsds"
+resolutions:
+  - "1800arcsec"
+
+firstyear_inclusive: 2014
+lastyear_inclusive: 2014
+
+lpjguesspath: '/home/konni/Documents/phd/code/gitlab_lpjguess/LPJ-GUESS'
+
+regions:
+  bavaria:
+    natural_earth_name: 'Bayern'
+    natural_earth_level: 'admin_1_states_provinces'
+    minlon: 8
+    maxlon: 15
+    minlat: 47
+    maxlat: 51
