@@ -1,18 +1,18 @@
-import "<LPJGUESSPATH>/data/ins/europe.ins"
+import "/guess_4.1/data/ins/europe.ins"
 
 !///////////////////////////////////////////////////////////////////////////////////////
 ! Forcing Data & gridlists
 !
 
-param "file_co2"      (str "<ISIMIP_DIR>/isimip_prepared_data/co2_obsclim_annual_1850_2021.txt")
+param "file_co2"      (str "/isimip_prepared_data/co2_obsclim_annual_1850_2021.txt")
 
-param "file_temp"     (str "<ISIMIP_DIR>/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_tas_<RESOLUTION>_<REGION>_daily_allyears.nc")
+param "file_temp"     (str "/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_tas_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
 param "variable_temp" (str "tas")
 
-param "file_prec"     (str "<ISIMIP_DIR>/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_pr_<RESOLUTION>_<REGION>_daily_allyears.nc")
+param "file_prec"     (str "/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_pr_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
 param "variable_prec" (str "pr")
 
-param "file_insol"      (str "<ISIMIP_DIR>/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_rsds_<RESOLUTION>_<REGION>_daily_allyears.nc")
+param "file_insol"      (str "/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_rsds_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
 param "variable_insol"  (str "rsds")
 
 param "file_wetdays" (str "")
@@ -34,12 +34,12 @@ firemodel "NOFIRE"
 param "file_simfire"  (str "")
 
 
-param "file_gridlist" (str "<ISIMIP_DIR>/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist.txt")
-param "file_gridlist_cf" (str "<ISIMIP_DIR>/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist_cf.txt")
+param "file_gridlist" (str "/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist.txt")
+param "file_gridlist_cf" (str "/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist_cf.txt")
 
 nyear_spinup 101
 npatch 1
 
-param "file_soildata" (str "<LPJGUESSPATH>/data/env/soils_lpj.dat")
+param "file_soildata" (str "/guess_4.1/data/env/soils_lpj.dat")
 
-outputdirectory "<ISIMIP_DIR>/lpjguess_outputs/"
+outputdirectory "/lpjguess_outputs/"

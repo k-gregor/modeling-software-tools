@@ -51,7 +51,7 @@ rule all:
             resolution=resolutions,
             regionname=list(regions.keys())
         ),
-        expand("isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_fullyear_{year}.nc",
+        expand("isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_fullyear_{year}_noleap.nc",
             variable=variables,
             year=years,
             model=models,
@@ -59,14 +59,28 @@ rule all:
             resolution=resolutions,
             regionname=list(regions.keys())
         ),
-        expand(
-            "lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
+        expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+            variable=variables,
+            year=years,
+            model=models,
+            model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
+            resolution=resolutions,
+            regionname=list(regions.keys())
+        ),
+        expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
+            variable=variables,
+            year=years,
+            model=models,
+            model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
+            resolution=resolutions,
+            regionname=list(regions.keys())
+        ),
+        expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
                 model=models,
                 resolution=resolutions,
                 regionname=list(regions.keys())
         ),
-        expand(
-            "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
+        expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
                 model=models,
                 model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
                 resolution=resolutions,
@@ -174,10 +188,27 @@ rule cycle_data:
         repeated_inputs = " ".join([f"{input}"] * 31)
         shell(f"cdo -settaxis,1990-01-01,00:00:00,1day -copy {repeated_inputs} {output}")
 
+#TODO remove this once the new LPJ is released
+rule adapt_floating_point_precision:
+    input:
+        "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+    output:
+        "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
+    params:
+       rounding_factor = lambda wildcards: 100 if wildcards.resolution == '1800arcsec' else 100000,
+    shell:
+        """
+        echo "test"
+        # make sure that the dimensions have only 10 significant digits, otherwise it could happen that in one file it is
+        # 8.24986035815 and in the other 8.24986035814999. LPJ-GUESS will complain about this.
+        ncap2 -O -s 'lon=round(lon*{params.rounding_factor})/{params.rounding_factor}; lat=round(lat*{params.rounding_factor})/{params.rounding_factor}' {input} {output}
+        """
+
+
 rule create_gridlist:
     input:
         "create_gridlist_for_region.py",
-        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
             model=wildcards.model,
             resolution=resolutions,
             regionname=list(regions.keys()),
@@ -205,7 +236,7 @@ rule download_isimip_co2_data:
 rule prepare_model_instruction_files:
     input:
         "lpjguess_instruction_files/template.ins",
-        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
             model=wildcards.model,
             resolution=wildcards.resolution,
             regionname=wildcards.regionname,
@@ -233,7 +264,7 @@ rule run_lpj_guess:
             resolution=resolutions,
             regionname=list(regions.keys())
         ),
-        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
             model=models,
             resolution=resolutions,
             regionname=list(regions.keys()),
@@ -243,7 +274,9 @@ rule run_lpj_guess:
         "lpjguess_outputs/cpool.out"
     shell:
         """
-        #TODO run with docker?
-        echo "Start LPJ-GUESS"
-        {lpjguesspath}/cmake-build-release/guess -input cf {input[0]}
+        sudo docker run -it \
+            --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
+            --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
+            --mount type=bind,src=./lpjguess_outputs,target=/lpjguess_outputs   \
+            kgregor-lpjguess-image cmake-build-release/guess -input cf /lpjguess_instruction_files/chelsa-w5e5_1800arcsec_bavaria.ins
         """
