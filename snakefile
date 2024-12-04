@@ -263,7 +263,7 @@ rule run_lpj_guess:
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
             --mount type=bind,src=./{output[0]},target=/{output[0]}   \
-            kgregor-lpjguess-image bash -c "cd /{output[0]} ; /guess_4.1/cmake-build-release/guess -input cf /{input[0]}"
+            kgregor/lpj-guess:latest bash -c "cd /{output[0]} ; /guess_4.1/cmake-build-release/guess -input cf /{input[0]}"
         """
 
 
