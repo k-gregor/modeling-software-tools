@@ -1,0 +1,29 @@
+# Author: Konstantin Gregor
+# Based off the examples at https://docs.github.com/en/actions/writing-workflows/quickstart
+
+name: Example pipeline
+run-name: Linting and testing the pre- and postprocessing scripts
+on: [push]
+jobs:
+  Test-python-scripts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0} # necessary for conda to work in Github Actions, see https://github.com/marketplace/actions/setup-miniconda#example-3-other-options
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: model-coding-paper
+          environment-file: environment.yml
+          python-version: 3.12
+          auto-activate-base: false
+
+      - name: Run pytests
+        run: |
+          conda info
+          conda list
+          PYTHONPATH=. pytest --junitxml=junit/test-results.xml
