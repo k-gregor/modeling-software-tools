@@ -24,6 +24,8 @@ jobs:
 
       - name: Run pytests
         run: |
-          conda info
-          conda list
           PYTHONPATH=. pytest --junitxml=junit/test-results.xml
+
+      - name: Run snakemake #TODO this should go into its own ci file, but it needs to depend on the other steps.
+        run: |
+          snakemake --cores 1
