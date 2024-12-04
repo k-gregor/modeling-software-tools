@@ -30,7 +30,6 @@ This allows any user to reproduce the entire modeling exercise.
 
 A few prerequisites need to be
 - conda
-- cdo: `sudo apt install cdo`
 
 ## Setup up conda environment
 
