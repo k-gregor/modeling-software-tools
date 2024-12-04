@@ -31,9 +31,6 @@ def get_polygon_for_region(natural_earth_regionname, natural_earth_regiontype):
     return regional_df
 
 
-
-
-
 def create_gridlist_for_region(tas, poly, regionnames):
 
     region_gridlist = []
@@ -96,6 +93,19 @@ def plot_gridlist(resolution_isimip_string, region_poly, gridlist):
     fig.savefig(outputfile + '.png', dpi=300, bbox_inches='tight')
 
 
+def get_gridlist_from_climate_data_and_region(climate_file, naturalearth_regionnames, naturalearth_regiontype):
+    assert isinstance(naturalearth_regionnames, list), "Regionnnames are not provided as list!"
+
+    print('Reading climate data', climate_file)
+    climate_data = xr.open_dataset(climate_file)
+    subregion_polygons = []
+    for subregion_name in naturalearth_regionnames:
+        subregion_polygons.append(get_polygon_for_region(subregion_name, naturalearth_regiontype))
+    region_poly = unary_union(subregion_polygons)
+    gridlist, gridlist_cf = create_gridlist_for_region(climate_data, subregion_polygons, naturalearth_regionnames)
+
+    return region_poly, gridlist, gridlist_cf
+
 if __name__ == "__main__":
     climate_file = sys.argv[1]
     resolution_isimip_string = sys.argv[2]
@@ -105,19 +115,11 @@ if __name__ == "__main__":
     outputfile = sys.argv[6]
     outputfile_cf = sys.argv[7]
 
-    assert(regionname in climate_file), f'Region name {regionname} not in climate filename {climate_file}'
-    assert(resolution_isimip_string in climate_file), "Resolution does not match climate file"
-
-    print('Reading climate data', climate_file)
-    climate_data = xr.open_dataset(climate_file)
+    assert (regionname in climate_file), f'Region name {regionname} not in climate filename {climate_file}'
+    assert (resolution_isimip_string in climate_file), "Resolution does not match climate file"
 
     print('Create gridlist for', regionname)
-    subregion_polygons = []
-    for subregion_name in naturalearth_regionnames:
-        subregion_polygons.append(get_polygon_for_region(subregion_name, naturalearth_regiontype))
-    region_poly = unary_union(subregion_polygons)
-    gridlist, gridlist_cf = create_gridlist_for_region(climate_data, subregion_polygons, naturalearth_regionnames)
-
+    region_poly, gridlist, gridlist_cf = get_gridlist_from_climate_data_and_region(climate_file, naturalearth_regionnames, naturalearth_regiontype)
 
     print('Write gridlist')
     gridlist_df = pd.DataFrame(gridlist)
