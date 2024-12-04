@@ -6,4 +6,4 @@ isimip_downloaded_data/
 isimip_prepared_data/
 lpjguess_instruction_files/*
 !lpjguess_instruction_files/template.ins
-lpjguess_outputs/*
+lpjguess_outputs*

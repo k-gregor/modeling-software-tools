@@ -20,11 +20,10 @@ regions:
     maxlon: 15
     minlat: 47
     maxlat: 51
-# Uncomment this section to run the process also for Denmark, or provide your own region.
-#  denmark:
-#    natural_earth_name: 'Denmark'
-#    natural_earth_level: 'admin_0_countries'
-#    minlon: 8
-#    maxlon: 13
-#    minlat: 54
-#    maxlat: 58
+  denmark:
+    natural_earth_name: 'Denmark'
+    natural_earth_level: 'admin_0_countries'
+    minlon: 8
+    maxlon: 13
+    minlat: 54
+    maxlat: 58

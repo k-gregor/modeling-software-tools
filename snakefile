@@ -63,7 +63,6 @@ rule all:
             variable=variables,
             year=years,
             model=models,
-            model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
             resolution=resolutions,
             regionname=list(regions.keys())
         ),
@@ -71,7 +70,6 @@ rule all:
             variable=variables,
             year=years,
             model=models,
-            model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
             resolution=resolutions,
             regionname=list(regions.keys())
         ),
@@ -82,12 +80,12 @@ rule all:
         ),
         expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
                 model=models,
-                model_upper=[m.upper() for m in models],  # Ensure the uppercase versions are expanded here
                 resolution=resolutions,
                 regionname=list(regions.keys()),
         ),
         "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt",
-        "lpjguess_outputs/cpool.out"
+        expand("lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out",
+            model=models, resolution=resolutions, regionname=list(regions.keys()))
 
 rule download_isimip_climate_data:
     output:
@@ -208,12 +206,7 @@ rule adapt_floating_point_precision:
 rule create_gridlist:
     input:
         "create_gridlist_for_region.py",
-        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
-            model=wildcards.model,
-            resolution=resolutions,
-            regionname=list(regions.keys()),
-            variable=variables,
-        )
+        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
     params:
        natural_earth_name= lambda wildcards: [regions[wildcards.regionname]['natural_earth_name']],
        natural_earth_level= lambda wildcards: [regions[wildcards.regionname]['natural_earth_level']],
@@ -222,7 +215,8 @@ rule create_gridlist:
         "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist_cf.txt",
     shell:
         """
-        python create_gridlist_for_region.py {wildcards.model} {wildcards.resolution} {wildcards.regionname} {params.natural_earth_name} {params.natural_earth_level} {output[0]} {output[1]}
+        echo "call create gridlist with {input[1]} and {wildcards.regionname}"
+        python create_gridlist_for_region.py {input[1]} {wildcards.resolution} {wildcards.regionname} {params.natural_earth_name} {params.natural_earth_level} {output[0]} {output[1]}
         """
 
 rule download_isimip_co2_data:
@@ -254,29 +248,22 @@ rule prepare_model_instruction_files:
 
 rule run_lpj_guess:
     input:
-        lambda wildcards: expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
-            model=models,
-            resolution=resolutions,
-            regionname=list(regions.keys())
-        ),
-        lambda wildcards: expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
-            model=models,
-            resolution=resolutions,
-            regionname=list(regions.keys())
-        ),
-        lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
-            model=models,
-            resolution=resolutions,
-            regionname=list(regions.keys()),
-            variable=variables
-        )
+        "lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
+        "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
+        #TODO: How can I make sure that all variables are checked here, not only tas?
+        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
     output:
-        "lpjguess_outputs/cpool.out"
+        directory("lpjguess_outputs_{model}_{resolution}_{regionname}"),
+        "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
     shell:
         """
-        sudo docker run -it \
+        mkdir -p {output[0]}
+        docker run -it \
+            --user $(id -u):$(id -g)  \
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
-            --mount type=bind,src=./lpjguess_outputs,target=/lpjguess_outputs   \
-            kgregor-lpjguess-image cmake-build-release/guess -input cf /lpjguess_instruction_files/chelsa-w5e5_1800arcsec_bavaria.ins
+            --mount type=bind,src=./{output[0]},target=/{output[0]}   \
+            kgregor-lpjguess-image bash -c "cd /{output[0]} ; /guess_4.1/cmake-build-release/guess -input cf /{input[0]}"
         """
+
+
