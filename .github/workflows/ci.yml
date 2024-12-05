@@ -28,4 +28,7 @@ jobs:
 
       - name: Run snakemake #TODO this should go into its own ci file, but it needs to depend on the other steps.
         run: |
-          snakemake --cores 1
+          snakemake --verbose --cores 1
+          
+
+# maybe even add building the docker image here
