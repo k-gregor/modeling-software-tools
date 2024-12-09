@@ -14,6 +14,8 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
+      # problem: this takes quite a while (2min). But the nice thing is, this checks that the environment.yml is really
+      # containing all that is necessary and simulates setting up the environment from scratch...
       - name: Setup conda environment
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -32,7 +34,7 @@ jobs:
 
       - name: Docker test 2
         run: |
-          docker run -it kgregor/lpj-guess:latest bash -c "ls"
+          docker run kgregor/lpj-guess:latest bash -c "ls"
 
       - name: Run snakemake #TODO this should go into its own ci file, but it needs to depend on the other steps.
         run: |
