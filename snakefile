@@ -257,8 +257,9 @@ rule run_lpj_guess:
         "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
     shell:
         """
+        echo "Run LPJ-GUESS"
         mkdir -p {output[0]}
-        docker run -it \
+        docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
