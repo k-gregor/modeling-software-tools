@@ -26,6 +26,14 @@ jobs:
         run: |
           PYTHONPATH=. pytest --junitxml=junit/test-results.xml
 
+      - name: Docker test 1
+        run: |
+          docker run hello-world
+
+      - name: Docker test 2
+        run: |
+          docker run -it kgregor/lpj-guess:latest bash -c "ls"
+
       - name: Run snakemake #TODO this should go into its own ci file, but it needs to depend on the other steps.
         run: |
           snakemake --verbose --cores 1
