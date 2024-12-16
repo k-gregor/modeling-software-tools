@@ -35,11 +35,11 @@ def test_retrieved_region_contains_expected_coordinates_for_states():
 def test_create_gridlist_for_region_gets_climate_coordinates_within_region():
 
     # dummy_temp.nc contains one single grid cell aroud Munich
-    _, gridlist_points_in_germany, _ = get_gridlist_from_climate_data_and_region('testing/test_resources/dummy_temp.nc', ['Germany'], 'admin_0_countries')
+    _, gridlist_points_in_germany, _ = get_gridlist_from_climate_data_and_region('testing/testing_resources/dummy_temp.nc', ['Germany'], 'admin_0_countries')
     assert len(gridlist_points_in_germany) == 1
 
-    _, gridlist_points_in_france_and_germany, _ = get_gridlist_from_climate_data_and_region('testing/test_resources/dummy_temp.nc', ['France', 'Germany'], 'admin_0_countries')
+    _, gridlist_points_in_france_and_germany, _ = get_gridlist_from_climate_data_and_region('testing/testing_resources/dummy_temp.nc', ['France', 'Germany'], 'admin_0_countries')
     assert len(gridlist_points_in_france_and_germany) == 1
 
-    _, gridlist_points_in_france, _ = get_gridlist_from_climate_data_and_region('testing/test_resources/dummy_temp.nc', ['France'], 'admin_0_countries')
+    _, gridlist_points_in_france, _ = get_gridlist_from_climate_data_and_region('testing/testing_resources/dummy_temp.nc', ['France'], 'admin_0_countries')
     assert len(gridlist_points_in_france) == 0
