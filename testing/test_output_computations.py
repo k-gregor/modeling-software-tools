@@ -42,7 +42,7 @@ def test_length_of_latitude():
     assert target.compute_length_of_latitude(-90) == pytest.approx(111694, rel=TOLERANCE)
 
 def test_aggregation_of_ones_result_in_total_area_for_each_year():
-    cpool_bavaria_data = pd.read_csv('bavaria_cpool_two_years.out', sep='\\s+').set_index(['Lon', 'Lat', 'Year'])
+    cpool_bavaria_data = pd.read_csv('testing/testing_resources/bavaria_cpool_two_years.out', sep='\\s+').set_index(['Lon', 'Lat', 'Year'])
     total_value = target.get_total_value_per_year(cpool_bavaria_data, variable_name='VegC')
 
     bavaria_area_km2 = 70_550
