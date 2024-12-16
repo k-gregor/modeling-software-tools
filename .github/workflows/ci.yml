@@ -2,7 +2,7 @@
 # Based off the examples at https://docs.github.com/en/actions/writing-workflows/quickstart
 
 name: Example pipeline
-run-name: Linting and testing the pre- and postprocessing scripts
+run-name: Setting up conda, running tests, running snakemake including model run
 on: [push]
 jobs:
   Example-pipeline:
