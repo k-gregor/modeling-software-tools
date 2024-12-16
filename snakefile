@@ -12,7 +12,6 @@ years = list(range(firstyear, lastyear+1))
 months = [f"{m:02d}" for m in range(1, 13)]
 
 regions = config["regions"]
-lpjguesspath = config["lpjguesspath"]
 
 wildcard_constraints:
     regionname="[^/_]+", # ensure regionname does not contain a "/"
@@ -79,6 +78,11 @@ rule all:
                 regionname=list(regions.keys())
         ),
         expand("lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
+                model=models,
+                resolution=resolutions,
+                regionname=list(regions.keys()),
+        ),
+        expand("executed_notebooks/output_analysis_{model}_{resolution}_{regionname}.ipynb",
                 model=models,
                 resolution=resolutions,
                 regionname=list(regions.keys()),
@@ -229,6 +233,7 @@ rule download_isimip_co2_data:
 
 rule prepare_model_instruction_files:
     input:
+        "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt",
         "lpjguess_instruction_files/template.ins",
         lambda wildcards: expand("isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
             model=wildcards.model,
@@ -243,7 +248,13 @@ rule prepare_model_instruction_files:
     shell:
         """
         echo "test"
-        sed -e 's;<MODEL>;{wildcards.model};g' -e 's;<RESOLUTION>;{wildcards.resolution};g' -e 's;<REGION>;{wildcards.regionname};g' -e 's;<LPJGUESSPATH>;{lpjguesspath};g' -e 's;<FIRSTYEAR>;{firstyear};g' -e 's;<LASTYEAR>;{lastyear};g' -e 's;<ISIMIP_DIR>;{params.pwd};g' lpjguess_instruction_files/template.ins > {output}
+        sed -e 's;<MODEL>;{wildcards.model};g' \
+            -e 's;<RESOLUTION>;{wildcards.resolution};g' \
+            -e 's;<REGION>;{wildcards.regionname};g' \
+            -e 's;<FIRSTYEAR>;{firstyear};g' \
+            -e 's;<LASTYEAR>;{lastyear};g' \
+            -e 's;<ISIMIP_DIR>;{params.pwd};g' \
+            lpjguess_instruction_files/template.ins > {output}
         """
 
 rule run_lpj_guess:
@@ -251,7 +262,8 @@ rule run_lpj_guess:
         "lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
         "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
         #TODO: How can I make sure that all variables are checked here, not only tas?
-        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
+        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc",
+        "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt"
     output:
         directory("lpjguess_outputs_{model}_{resolution}_{regionname}"),
         "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
@@ -259,7 +271,7 @@ rule run_lpj_guess:
         """
         echo "Run LPJ-GUESS"
         mkdir -p {output[0]}
-        docker run \
+        sudo docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
@@ -267,4 +279,10 @@ rule run_lpj_guess:
             kgregor/lpj-guess:latest bash -c "cd /{output[0]} ; /guess_4.1/cmake-build-release/guess -input cf /{input[0]}"
         """
 
-
+rule run_postprocessing:
+    input:
+        "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
+    log:
+        notebook="executed_notebooks/output_analysis_{model}_{resolution}_{regionname}.ipynb"
+    notebook:
+        "output_analysis.ipynb"
