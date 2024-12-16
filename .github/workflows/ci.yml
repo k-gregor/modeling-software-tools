@@ -5,7 +5,7 @@ name: Example pipeline
 run-name: Linting and testing the pre- and postprocessing scripts
 on: [push]
 jobs:
-  Test-python-scripts:
+  Example-pipeline:
     runs-on: ubuntu-latest
     defaults:
       run:
