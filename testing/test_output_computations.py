@@ -43,7 +43,7 @@ def test_length_of_latitude():
 
 def test_aggregation_of_ones_result_in_total_area_for_each_year():
     cpool_bavaria_data = pd.read_csv('testing/testing_resources/bavaria_cpool_two_years.out', sep='\\s+').set_index(['Lon', 'Lat', 'Year'])
-    total_value = target.get_total_value_per_year(cpool_bavaria_data, variable_name='VegC')
+    total_value = target.get_area_weighted_sum_per_year(cpool_bavaria_data, variable_name='VegC')
 
     bavaria_area_km2 = 70_550
     m2_to_km2 = 1_000_000

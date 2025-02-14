@@ -13,6 +13,8 @@ months = [f"{m:02d}" for m in range(1, 13)]
 
 regions = config["regions"]
 
+print(regions)
+
 wildcard_constraints:
     regionname="[^/_]+", # ensure regionname does not contain a "/"
     resolution="[^_]+",
@@ -89,7 +91,8 @@ rule all:
         ),
         "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt",
         expand("lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out",
-            model=models, resolution=resolutions, regionname=list(regions.keys()))
+            model=models, resolution=resolutions, regionname=list(regions.keys())),
+        "output_analysis.html"
 
 rule download_isimip_climate_data:
     output:
@@ -271,7 +274,7 @@ rule run_lpj_guess:
         """
         echo "Run LPJ-GUESS"
         mkdir -p {output[0]}
-        sudo docker run \
+        docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
@@ -286,3 +289,15 @@ rule run_postprocessing:
         notebook="executed_notebooks/output_analysis_{model}_{resolution}_{regionname}.ipynb"
     notebook:
         "output_analysis.ipynb"
+
+rule provide_postprocessing_as_html:
+    input:
+        "output_analysis.ipynb",
+        "lpjguess_outputs_chelsa-w5e5_1800arcsec_bavaria/cpool.out",
+    output:
+        # only providing one output file here as an example, one could create one for each model/region etc.
+        "output_analysis.html"
+    shell:
+        """
+        jupyter nbconvert --execute --to html --no-input output_analysis.ipynb
+        """
