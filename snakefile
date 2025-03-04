@@ -97,9 +97,12 @@ rule all:
 rule download_isimip_climate_data:
     output:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_global_daily_{year}{month}.nc",
+    log: "snakemake_logs/download_isimip_climate_data_{model_upper}_{model}_{variable}_{resolution}_{year}_{month}.log"
     params:
         directory=lambda wildcards: f"isimip_downloaded_data/{wildcards.model.upper()}/",
         url=lambda wildcards: f"https://files.isimip.org/ISIMIP3a/InputData/climate/atmosphere/obsclim/global/daily/historical/{wildcards.model.upper()}/{wildcards.model}_obsclim_{wildcards.variable}_{wildcards.resolution}_global_daily_{wildcards.year}{wildcards.month}.nc"
+    conda:
+        "environment.yml"
     shell:
         """
         mkdir -p {params.directory}
@@ -113,6 +116,9 @@ rule crop_isimip_data:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_global_daily_{year}{month}.nc"
     output:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_{year}{month}.nc"
+    log: "snakemake_logs/crop_isimip_data_{model_upper}_{model}_{variable}_{resolution}_{regionname}_{year}_{month}.log"
+    conda:
+        "environment.yml"
     params:
        minlon = lambda wildcards: [regions[wildcards.regionname]['minlon']],
        maxlon = lambda wildcards: [regions[wildcards.regionname]['maxlon']],
@@ -138,6 +144,9 @@ rule concat_to_yearly_cropped_isimip_data:
         )
     output:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_fullyear_{year}.nc"
+    log: "snakemake_logs/concat_to_yearly_cropped_isimip_data_{model_upper}_{model}_{variable}_{resolution}_{regionname}_{year}.log"
+    conda:
+        "environment.yml"
     shell:
         """
         cdo -O -z zip_9 -mergetime {input} {output}
@@ -148,6 +157,9 @@ rule delete_leapdays:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_fullyear_{year}.nc"
     output:
         "isimip_downloaded_data/{model_upper}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_fullyear_{year}_noleap.nc"
+    log: "snakemake_logs/delete_leapdays_{model_upper}_{model}_{variable}_{resolution}_{regionname}_{year}.log"
+    conda:
+        "environment.yml"
     shell:
         """
         cdo -O -delete,month=2,day=29 {input} {output}
@@ -166,6 +178,9 @@ rule combine_to_single_input_file:
         )
     output:
         "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_{firstyear}_{lastyear}.nc",
+    log: "snakemake_logs/combine_to_single_input_file_{model}_{variable}_{resolution}_{regionname}_{firstyear}_{lastyear}.log"
+    conda:
+        "environment.yml"
     shell:
         """
         # merge yearly to total data and apply scale factor using unpack function.
@@ -189,46 +204,53 @@ rule cycle_data:
         )
     output:
         "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
+    log: "snakemake_logs/cycle_data_{model}_{variable}_{resolution}_{regionname}.log"
     run:
         repeated_inputs = " ".join([f"{input}"] * 31)
         shell(f"cdo -settaxis,1990-01-01,00:00:00,1day -copy {repeated_inputs} {output}")
 
-#TODO remove this once the new LPJ is released
 rule adapt_floating_point_precision:
     input:
         "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears.nc",
     output:
         "isimip_prepared_data/{model}/{model}_obsclim_{variable}_{resolution}_{regionname}_daily_allyears_ncks.nc",
+    log: "snakemake_logs/adapt_floating_point_precision_{model}_{variable}_{resolution}_{regionname}.log"
     params:
        rounding_factor = lambda wildcards: 100 if wildcards.resolution == '1800arcsec' else 100000,
+    conda:
+        "environment.yml"
     shell:
         """
-        echo "test"
-        # make sure that the dimensions have only 10 significant digits, otherwise it could happen that in one file it is
-        # 8.24986035815 and in the other 8.24986035814999. LPJ-GUESS will complain about this.
+        # Need to round the input coordinates, otherwise LPJ-GUESS will complain about this.
         ncap2 -O -s 'lon=round(lon*{params.rounding_factor})/{params.rounding_factor}; lat=round(lat*{params.rounding_factor})/{params.rounding_factor}' {input} {output}
         """
 
 
 rule create_gridlist:
     input:
-        "create_gridlist_for_region.py",
-        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
+        script="create_gridlist_for_region.py",
+        climatefile="isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
+    output:
+        gridlist="lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
+        gridlist_cf="lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist_cf.txt",
+    log: "snakemake_logs/create_gridlist_{model}_{resolution}_{regionname}.log"
     params:
        natural_earth_name= lambda wildcards: [regions[wildcards.regionname]['natural_earth_name']],
        natural_earth_level= lambda wildcards: [regions[wildcards.regionname]['natural_earth_level']],
-    output:
-        "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
-        "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist_cf.txt",
+    conda:
+        "environment.yml"
     shell:
         """
-        echo "call create gridlist with {input[1]} and {wildcards.regionname}"
-        python create_gridlist_for_region.py {input[1]} {wildcards.resolution} {wildcards.regionname} {params.natural_earth_name} {params.natural_earth_level} {output[0]} {output[1]}
+        echo "call create gridlist with {input.climatefile} and {wildcards.regionname}"
+        python create_gridlist_for_region.py {input.climatefile} {wildcards.resolution} {wildcards.regionname} {params.natural_earth_name} {params.natural_earth_level} {output.gridlist} {output.gridlist_cf}
         """
 
 rule download_isimip_co2_data:
     output:
         "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt",
+    log: "snakemake_logs/download_isimip_co2_data.log"
+    conda:
+        "environment.yml"
     shell:
         """
         wget -nc -P isimip_prepared_data/ https://files.isimip.org/ISIMIP3a/InputData/climate/atmosphere_composition/co2/obsclim/co2_obsclim_annual_1850_2021.txt
@@ -246,40 +268,48 @@ rule prepare_model_instruction_files:
         )
     output:
         "lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins"
+    log: "snakemake_logs/prepare_model_instruction_files_{model}_{resolution}_{regionname}.log"
     params:
-        pwd = os.getcwd()
+        pwd = os.getcwd(),
+        firstyear = firstyear,
+        lastyear = lastyear,
+    conda:
+        "environment.yml"
     shell:
         """
         echo "test"
         sed -e 's;<MODEL>;{wildcards.model};g' \
             -e 's;<RESOLUTION>;{wildcards.resolution};g' \
             -e 's;<REGION>;{wildcards.regionname};g' \
-            -e 's;<FIRSTYEAR>;{firstyear};g' \
-            -e 's;<LASTYEAR>;{lastyear};g' \
+            -e 's;<FIRSTYEAR>;{params.firstyear};g' \
+            -e 's;<LASTYEAR>;{params.lastyear};g' \
             -e 's;<ISIMIP_DIR>;{params.pwd};g' \
             lpjguess_instruction_files/template.ins > {output}
         """
 
 rule run_lpj_guess:
     input:
-        "lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
-        "lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
+        insfile="lpjguess_instruction_files/{model}_{resolution}_{regionname}.ins",
+        gridlist="lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
         #TODO: How can I make sure that all variables are checked here, not only tas?
-        "isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc",
-        "isimip_prepared_data/co2_obsclim_annual_1850_2021.txt"
+        climatefile="isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc",
+        co2file="isimip_prepared_data/co2_obsclim_annual_1850_2021.txt"
     output:
-        directory("lpjguess_outputs_{model}_{resolution}_{regionname}"),
-        "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
+        dir=directory("lpjguess_outputs_{model}_{resolution}_{regionname}"),
+        cpool_output="lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
+    log: "snakemake_logs/run_lpj_guess_{model}_{resolution}_{regionname}.log"
+    conda:
+        "environment.yml"
     shell:
         """
         echo "Run LPJ-GUESS"
-        mkdir -p {output[0]}
-        docker run \
+        mkdir -p {output.dir}
+        sudo docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./isimip_prepared_data,target=/isimip_prepared_data   \
             --mount type=bind,src=./lpjguess_instruction_files,target=/lpjguess_instruction_files   \
-            --mount type=bind,src=./{output[0]},target=/{output[0]}   \
-            kgregor/lpj-guess:latest bash -c "cd /{output[0]} ; /guess_4.1/cmake-build-release/guess -input cf /{input[0]}"
+            --mount type=bind,src=./{output.dir},target=/{output.dir}   \
+            kgregor/lpj-guess:latest bash -c "cd /{output.dir} ; /guess_4.1/cmake-build-release/guess -input cf /{input.insfile}"
         """
 
 rule run_postprocessing:
@@ -287,6 +317,8 @@ rule run_postprocessing:
         "lpjguess_outputs_{model}_{resolution}_{regionname}/cpool.out"
     log:
         notebook="executed_notebooks/output_analysis_{model}_{resolution}_{regionname}.ipynb"
+    conda:
+        "environment.yml"
     notebook:
         "output_analysis.ipynb"
 
@@ -297,6 +329,9 @@ rule provide_postprocessing_as_html:
     output:
         # only providing one output file here as an example, one could create one for each model/region etc.
         "output_analysis.html"
+    log: "snakemake_logs/provide_postprocessing_as_html.log"
+    conda:
+        "environment.yml"
     shell:
         """
         jupyter nbconvert --execute --to html --no-input output_analysis.ipynb
