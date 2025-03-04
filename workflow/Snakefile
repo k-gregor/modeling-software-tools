@@ -316,5 +316,5 @@ rule provide_postprocessing_as_html:
         "envs/environment.yml"
     shell:
         """
-        jupyter nbconvert --execute --to html --no-input workflow/notebooks/output_analysis.ipynb --output-dir ../../ --output {output}
+        jupyter nbconvert --execute --to html --template lab --no-input workflow/notebooks/output_analysis.ipynb --output-dir . --output {output}
         """
