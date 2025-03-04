@@ -1,0 +1,45 @@
+import "/guess_4.1/data/ins/europe.ins"
+
+!///////////////////////////////////////////////////////////////////////////////////////
+! Forcing Data & gridlists
+!
+
+param "file_co2"      (str "/results/isimip_prepared_data/co2_obsclim_annual_1850_2021.txt")
+
+param "file_temp"     (str "/results/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_tas_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
+param "variable_temp" (str "tas")
+
+param "file_prec"     (str "/results/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_pr_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
+param "variable_prec" (str "pr")
+
+param "file_insol"      (str "/results/isimip_prepared_data/<MODEL>/<MODEL>_obsclim_rsds_<RESOLUTION>_<REGION>_daily_allyears_ncks.nc")
+param "variable_insol"  (str "rsds")
+
+param "file_wetdays" (str "")
+param "file_min_temp" (str "")
+param "file_max_temp" (str "")
+param "file_pres" (str "")
+param "file_specifichum" (str "")
+param "file_relhum" (str "")
+param "file_wind" (str "")
+
+
+! N deposition (blank string to use constant pre-industrial level of 2 kgN/ha/year)
+param "file_ndep"     (str "")
+
+
+
+! SIMFIRE-BLAZE related files
+firemodel "NOFIRE"
+param "file_simfire"  (str "")
+
+
+param "file_gridlist" (str "/results/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist.txt")
+param "file_gridlist_cf" (str "/results/lpjguess_instruction_files/<MODEL>_<RESOLUTION>_<REGION>_gridlist_cf.txt")
+
+nyear_spinup 101
+npatch 1
+
+param "file_soildata" (str "/guess_4.1/data/env/soils_lpj.dat")
+
+outputdirectory "/results/lpjguess_outputs_<MODEL>_<RESOLUTION>_<REGION>/"

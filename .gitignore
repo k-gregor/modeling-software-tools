@@ -9,4 +9,4 @@ lpjguess_instruction_files/*
 lpjguess_outputs*
 executed_notebooks
 snakemake_logs
-
+results/*

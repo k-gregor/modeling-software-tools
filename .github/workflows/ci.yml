@@ -20,7 +20,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: model-coding-paper
-          environment-file: environment.yml
+          environment-file: workflow/envs/environment.yml
           python-version: 3.12
           auto-activate-base: false
 
@@ -28,9 +28,6 @@ jobs:
         run: |
           PYTHONPATH=. pytest --junitxml=junit/test-results.xml
 
-      - name: Run snakemake #TODO this should go into its own ci file, but it needs to depend on the other steps.
+      - name: Run snakemake
         run: |
           snakemake --verbose --cores 1
-          
-
-# maybe even add building the docker image here

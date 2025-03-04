@@ -28,17 +28,17 @@ This allows any user to reproduce the entire modeling exercise.
 
 # Prerequisites
 
-A few prerequisites need to be
+A few prerequisites need to be installed
 - conda
 
 ## Setup up conda environment
 
-Run this command to create the environment from the provided file. This will ensur that the libraries on your machine will be the same versions as the one used in the creation of this repository.
+Run this command to create the environment from the provided file. This will ensure that the libraries on your machine will be the same versions as the one used in the creation of this repository.
 ```bash
 conda env create -f environment.yml
 conda activate model-coding-paper
 ```
-
+(The environment.yml file was created with the command `conda env export > environment.yml`)
 
 TODO, maybe everything should go into a Docker container??
 
