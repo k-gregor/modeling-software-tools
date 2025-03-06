@@ -1,8 +1,7 @@
 import pytest
 from shapely.geometry import Point
-import xarray as xr
 
-from create_gridlist_for_region import arcsecs_to_degrees, get_polygon_for_region, get_gridlist_from_climate_data_and_region
+from workflow.scripts.create_gridlist_for_region import arcsecs_to_degrees, get_polygon_for_region, get_gridlist_from_climate_data_and_region
 
 TOLERANCE = 0.00001
 BERLIN_LAT, BERLIN_LON = 52.5098016,13.4135867

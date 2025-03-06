@@ -1,8 +1,7 @@
 import pytest
 
-import output_computations as target
+import workflow.notebooks.output_computations as target
 import pandas as pd
-import numpy as np
 
 TOLERANCE = 0.0001
 

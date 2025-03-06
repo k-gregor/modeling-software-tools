@@ -25,3 +25,10 @@ regions:
     maxlon: -77
     minlat: 7
     maxlat: 10
+#  denmark:
+#    natural_earth_name: 'Denmark'
+#    natural_earth_level: 'admin_0_countries'
+#    minlon: 7
+#    maxlon: 12
+#    minlat: 54
+#    maxlat: 59
