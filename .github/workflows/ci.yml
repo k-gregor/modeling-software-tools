@@ -14,8 +14,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      # problem: this takes quite a while (2min). But the nice thing is, this checks that the environment.yml is really
-      # containing all that is necessary and simulates setting up the environment from scratch...
       - name: Setup conda environment
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -23,6 +21,10 @@ jobs:
           environment-file: workflow/envs/environment.yml
           python-version: 3.12
           auto-activate-base: false
+
+      - name: Install Jupyter kernel
+        run: |
+          python -m ipykernel install --user --name=model-coding-paper
 
       - name: Run pytests
         run: |
