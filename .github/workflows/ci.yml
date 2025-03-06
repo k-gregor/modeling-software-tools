@@ -29,8 +29,5 @@ jobs:
           PYTHONPATH=. pytest --junitxml=junit/test-results.xml
 
       - name: Run snakemake
-        with:
-          activate-environment: model-coding-paper
-          environment-file: workflow/envs/environment.yml
         run: |
-          snakemake --verbose --cores 1
+          snakemake --use-conda --verbose --cores 1
