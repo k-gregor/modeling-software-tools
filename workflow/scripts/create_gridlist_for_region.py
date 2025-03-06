@@ -107,13 +107,13 @@ def get_gridlist_from_climate_data_and_region(climate_file, naturalearth_regionn
     return region_poly, gridlist, gridlist_cf
 
 if __name__ == "__main__":
-    climate_file = sys.argv[1]
-    resolution_isimip_string = sys.argv[2]
-    regionname = sys.argv[3]
-    naturalearth_regionnames = sys.argv[4].split(',')
-    naturalearth_regiontype = sys.argv[5]
-    outputfile = sys.argv[6]
-    outputfile_cf = sys.argv[7]
+    climate_file = snakemake.input.climatefile
+    resolution_isimip_string = snakemake.wildcards['resolution']
+    regionname = snakemake.wildcards['regionname']
+    naturalearth_regionnames = snakemake.params['natural_earth_name']
+    naturalearth_regiontype = snakemake.params['natural_earth_level']
+    outputfile = snakemake.output.gridlist
+    outputfile_cf = snakemake.output.gridlist_cf
 
     assert (regionname in climate_file), f'Region name {regionname} not in climate filename {climate_file}'
     assert (resolution_isimip_string in climate_file), "Resolution does not match climate file"

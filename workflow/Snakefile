@@ -221,7 +221,6 @@ rule adapt_floating_point_precision:
 
 rule create_gridlist:
     input:
-        script="workflow/scripts/create_gridlist_for_region.py",
         climatefile="results/isimip_prepared_data/{model}/{model}_obsclim_tas_{resolution}_{regionname}_daily_allyears_ncks.nc"
     output:
         gridlist="results/lpjguess_instruction_files/{model}_{resolution}_{regionname}_gridlist.txt",
@@ -229,14 +228,11 @@ rule create_gridlist:
     log: "snakemake_logs/create_gridlist_{model}_{resolution}_{regionname}.log"
     params:
        natural_earth_name= lambda wildcards: [regions[wildcards.regionname]['natural_earth_name']],
-       natural_earth_level= lambda wildcards: [regions[wildcards.regionname]['natural_earth_level']],
+       natural_earth_level= lambda wildcards: regions[wildcards.regionname]['natural_earth_level'],
     conda:
         "envs/environment.yml"
-    shell:
-        """
-        echo "call create gridlist with {input.climatefile} and {wildcards.regionname}"
-        python workflow/scripts/create_gridlist_for_region.py {input.climatefile} {wildcards.resolution} {wildcards.regionname} {params.natural_earth_name} {params.natural_earth_level} {output.gridlist} {output.gridlist_cf}
-        """
+    script:
+        "scripts/create_gridlist_for_region.py"
 
 rule download_isimip_co2_data:
     output:
@@ -296,7 +292,7 @@ rule run_lpj_guess:
         """
         echo "Run LPJ-GUESS"
         mkdir -p {output.dir}
-        docker run \
+        sudo docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./results,target=/results   \
             --mount type=bind,src=./{output.dir},target=/{output.dir}   \
