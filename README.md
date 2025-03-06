@@ -12,7 +12,7 @@ In this pipeline:
 4. A grid list is created to run the model for a specified region and resolution
 5. The model LPJ-GUESS is run for two regions with simplified parameters
 6. The model output is analyzed and plotted
-7. The outputs are made available online via GitHub pages
+7. The outputs are made available online via GitHub pages at https://k-gregor.github.io/modeling-software-tools/
 
 All these steps will happen in a completely automated way.
 Furthermore, all required software packages are noted and the model is run within LPJ-GUESS, allowing the simple installation on any machine.
@@ -69,7 +69,12 @@ The configuration allows you to rerun the entire workflow easily for any other r
 
 You can visualize the pipeline by running `snakemake --dag | dot -Tsvg > dag.svg` and then looking at the created graph.
 
+# Tests
 
+Run the tests via
+```
+PYTHONPATH=. pytest
+```
 
 # Docker
 

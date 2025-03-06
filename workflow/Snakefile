@@ -292,7 +292,7 @@ rule run_lpj_guess:
         """
         echo "Run LPJ-GUESS"
         mkdir -p {output.dir}
-        sudo docker run \
+        docker run \
             --user $(id -u):$(id -g)  \
             --mount type=bind,src=./results,target=/results   \
             --mount type=bind,src=./{output.dir},target=/{output.dir}   \
