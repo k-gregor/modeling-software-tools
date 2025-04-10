@@ -1,6 +1,6 @@
 # Explanation
 
-This repository accompanies the paper Gregor et al. "TODO title". It shall serve as a simple example for modeling groups, highlighting key tools and concepts to create verified and reproducible scientific code.
+This repository accompanies the paper Gregor et al. "Best practices in software development for robust and reproducible geoscientific models". It shall serve as a simple example for modeling groups, highlighting key tools and concepts to create verified and reproducible scientific code.
 
 ## What does this repository do?
 
