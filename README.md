@@ -2,6 +2,8 @@
 
 This repository accompanies the paper Gregor et al. "Best practices in software development for robust and reproducible geoscientific models". It shall serve as a simple example for modeling groups, highlighting key tools and concepts to create verified and reproducible scientific code.
 
+https://egusphere.copernicus.org/preprints/2025/egusphere-2025-1733/
+
 ## What does this repository do?
 
 This repository contains an entire pipeline a modeling exercise as often done for geoscientific studies, only at a very small and simplified scale.
